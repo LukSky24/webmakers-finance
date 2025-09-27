@@ -3,14 +3,29 @@
 namespace App\Shared\Domain\ValueObject;
 
 use DateTimeImmutable;
+use Doctrine\ORM\Mapping as ORM;
 
+#[ORM\Embeddable]
 class Timestamp
 {
+    #[ORM\Column(type: 'datetime_immutable')]
+    private DateTimeImmutable $createdAt;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private DateTimeImmutable $updatedAt;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $deletedAt = null;
+
     public function __construct(
-        private readonly DateTimeImmutable $createdAt,
-        private readonly DateTimeImmutable $updatedAt,
-        private readonly ?DateTimeImmutable $deletedAt = null
-    ) {}
+        DateTimeImmutable $createdAt,
+        DateTimeImmutable $updatedAt,
+        ?DateTimeImmutable $deletedAt = null
+    ) {
+        $this->createdAt = $createdAt;
+        $this->updatedAt = $updatedAt;
+        $this->deletedAt = $deletedAt;
+    }
 
     public function getCreatedAt(): DateTimeImmutable
     {

@@ -18,7 +18,7 @@ class Budget
     private string $name;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $currentBalance;
+    private string $currentBalance;
 
     #[ORM\Embedded(class: Timestamp::class)]
     private Timestamp $timestamp;
@@ -26,7 +26,7 @@ class Budget
     public function __construct(string $name, float $initialBalance = 0.0)
     {
         $this->name = $name;
-        $this->currentBalance = $initialBalance;
+        $this->currentBalance = (string) $initialBalance;
         $this->timestamp = new Timestamp(
             new \DateTimeImmutable(),
             new \DateTimeImmutable()
@@ -43,7 +43,7 @@ class Budget
         return $this->name;
     }
 
-    public function getCurrentBalance(): float
+    public function getCurrentBalance(): string
     {
         return $this->currentBalance;
     }
@@ -55,19 +55,19 @@ class Budget
 
     public function addAmount(float $amount): void
     {
-        $this->currentBalance += $amount;
+        $this->currentBalance = (string) (floatval($this->currentBalance) + $amount);
         $this->timestamp = $this->timestamp->update();
     }
 
     public function subtractAmount(float $amount): void
     {
-        $this->currentBalance -= $amount;
+        $this->currentBalance = (string) (floatval($this->currentBalance) - $amount);
         $this->timestamp = $this->timestamp->update();
     }
 
     public function isNegative(): bool
     {
-        return $this->currentBalance < 0;
+        return floatval($this->currentBalance) < 0;
     }
 
     public function updateName(string $name): void

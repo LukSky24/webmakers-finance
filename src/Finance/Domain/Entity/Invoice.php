@@ -22,7 +22,7 @@ class Invoice
     private Contractor $contractor;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $amount;
+    private string $amount;
 
     #[ORM\Column(type: 'boolean')]
     private bool $isPaid = false;
@@ -41,7 +41,7 @@ class Invoice
     ) {
         $this->number = $number;
         $this->contractor = $contractor;
-        $this->amount = $amount;
+        $this->amount = (string) $amount;
         $this->dueDate = $dueDate;
         $this->timestamp = new Timestamp(
             new \DateTimeImmutable(),
@@ -64,7 +64,7 @@ class Invoice
         return $this->contractor;
     }
 
-    public function getAmount(): float
+    public function getAmount(): string
     {
         return $this->amount;
     }
