@@ -51,7 +51,7 @@ class DoctrineInvoiceRepository implements InvoiceRepositoryInterface
     public function findUnpaidOverdueByContractor(int $contractorId): array
     {
         $now = new \DateTime();
-
+        
         return $this->entityManager->getRepository(Invoice::class)
             ->createQueryBuilder('i')
             ->where('i.contractor = :contractorId')
@@ -60,6 +60,15 @@ class DoctrineInvoiceRepository implements InvoiceRepositoryInterface
             ->andWhere('i.timestamp.deletedAt IS NULL')
             ->setParameter('contractorId', $contractorId)
             ->setParameter('now', $now)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findAll(): array
+    {
+        return $this->entityManager->getRepository(Invoice::class)
+            ->createQueryBuilder('i')
+            ->where('i.timestamp.deletedAt IS NULL')
             ->getQuery()
             ->getResult();
     }

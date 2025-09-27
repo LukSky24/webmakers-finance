@@ -11,4 +11,5 @@ interface InvoiceRepositoryInterface
     public function findByContractorId(int $contractorId): array;
     public function findUnpaidOverdue(): array;
     public function findUnpaidOverdueByContractor(int $contractorId): array;
+    public function findAll(): array;
 }
