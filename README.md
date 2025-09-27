@@ -1,51 +1,112 @@
-# Symfony Docker
+# Webmakers Finance - System Ostrzeżeń
 
-A [Docker](https://www.docker.com/)-based installer and runtime for the [Symfony](https://symfony.com) web framework,
-with [FrankenPHP](https://frankenphp.dev) and [Caddy](https://caddyserver.com/) inside!
+Aplikacja Symfony zbudowana w architekturze DDD do zarządzania modelami finansowymi i generowania ostrzeżeń.
 
-![CI](https://github.com/dunglas/symfony-docker/workflows/CI/badge.svg)
+## Wymagania wstępne
 
-## Getting Started
+- PHP 8.4+
+- Symfony 7.3+
+- PostgreSQL 16+
+- Composer
+- Docker & Docker Compose
+- Bazowanie na szkielecie aplikacji: https://github.com/dunglas/symfony-docker
 
-1. If not already done, [install Docker Compose](https://docs.docker.com/compose/install/) (v2.10+)
-2. Run `docker compose build --pull --no-cache` to build fresh images
-3. Run `docker compose up --wait` to set up and start a fresh Symfony project
-4. Open `https://localhost` in your favorite web browser and [accept the auto-generated TLS certificate](https://stackoverflow.com/a/15076602/1352334)
-5. Run `docker compose down --remove-orphans` to stop the Docker containers.
+## Instalacja i uruchomienie
 
-## Features
+1. Sklonuj repozytorium:
+```bash
+git clone https://github.com/LukSky24/webmakers-finance.git
+cd webmakers-finance
+```
 
-- Production, development and CI ready
-- Just 1 service by default
-- Blazing-fast performance thanks to [the worker mode of FrankenPHP](https://github.com/dunglas/frankenphp/blob/main/docs/worker.md) (automatically enabled in prod mode)
-- [Installation of extra Docker Compose services](docs/extra-services.md) with Symfony Flex
-- Automatic HTTPS (in dev and prod)
-- HTTP/3 and [Early Hints](https://symfony.com/blog/new-in-symfony-6-3-early-hints) support
-- Real-time messaging thanks to a built-in [Mercure hub](https://symfony.com/doc/current/mercure.html)
-- [Vulcain](https://vulcain.rocks) support
-- Native [XDebug](docs/xdebug.md) integration
-- Super-readable configuration
+2. Uruchom aplikację:
+```bash
+docker compose up -d
+```
 
-**Enjoy!**
+3. Zainstaluj zależności:
+```bash
+docker compose exec php composer install
+```
 
-## Docs
+4. Uruchom migracje:
+```bash
+docker compose exec php php bin/console doctrine:migrations:migrate
+```
 
-1. [Options available](docs/options.md)
-2. [Using Symfony Docker with an existing project](docs/existing-project.md)
-3. [Support for extra services](docs/extra-services.md)
-4. [Deploying in production](docs/production.md)
-5. [Debugging with Xdebug](docs/xdebug.md)
-6. [TLS Certificates](docs/tls.md)
-7. [Using MySQL instead of PostgreSQL](docs/mysql.md)
-8. [Using Alpine Linux instead of Debian](docs/alpine.md)
-9. [Using a Makefile](docs/makefile.md)
-10. [Updating the template](docs/updating.md)
-11. [Troubleshooting](docs/troubleshooting.md)
+5. Załaduj przykładowe dane:
+```bash
+docker compose exec php php bin/console doctrine:fixtures:load
+```
 
-## License
+## Uruchomienie komendy generowania ostrzeżeń
 
-Symfony Docker is available under the MIT License.
+```bash
+docker compose exec php php bin/console app:warnings:generate
+```
 
-## Credits
+## Architektura
 
-Created by [Kévin Dunglas](https://dunglas.dev), co-maintained by [Maxime Helias](https://twitter.com/maxhelias) and sponsored by [Les-Tilleuls.coop](https://les-tilleuls.coop).
+Aplikacja zbudowana jest w architekturze DDD (Domain-Driven Design) z podziałem na moduły:
+
+### Moduł Finance
+- **Contractor** - kontrahenci z nazwą i timestampami
+- **Invoice** - faktury z numerem, kontrahentem, kwotą i terminem płatności
+- **Budget** - budżety z nazwą i bieżącym saldem
+
+### Moduł Core
+- **Warning** - ostrzeżenia z referencją do obiektu i typem
+
+### Reguły ostrzeżeń
+1. **Kontrahent** - ostrzeżenie gdy suma nieopłaconych faktur przekracza 15,000
+2. **Faktura** - ostrzeżenie gdy faktura jest przeterminowana (nieopłacona i termin minął)
+3. **Budżet** - ostrzeżenie gdy bieżący stan budżetu jest ujemny
+
+## Decyzje projektowe
+
+### Architektura DDD
+- Podział na moduły (Core, Finance) z jasno określonymi granicami
+- Warstwy: domena, aplikacja, infrastruktura
+- Repozytoria jako interfejsy w domenie, implementacje w infrastrukturze
+
+### Embedded Value Objects
+- `Timestamp` jako embedded object dla wszystkich encji
+- `ObjectReference` i `WarningType` jako value objects
+
+### Proste ID
+- Użycie `int` zamiast UUID dla prostoty
+- Auto-increment w bazie danych
+
+### Soft Delete
+- Implementacja miękkiego usuwania przez `deletedAt` w `Timestamp`
+- Wszystkie zapytania filtrują usunięte rekordy
+
+## Przykładowe dane
+
+Fixtures zawierają:
+- 4 kontrahentów
+- 4 budżety (2 z ujemnym saldem)
+- 8 faktur (różne statusy płatności i terminy)
+- 3 istniejące ostrzeżenia
+
+## Testowanie
+
+Po uruchomieniu fixtures możesz przetestować system:
+
+1. Uruchom komendę generowania ostrzeżeń
+2. Sprawdź wyniki w bazie danych
+3. Zmień dane (np. opłać fakturę) i uruchom ponownie
+4. Obserwuj jak ostrzeżenia są dodawane/usuwane
+
+## Rozwój
+
+### Dodawanie nowych typów ostrzeżeń
+1. Dodaj nowy case do `WarningType` enum
+2. Utwórz generator implementujący `WarningGeneratorInterface`
+3. Zarejestruj generator w komendzie CLI
+
+### Dodawanie nowych encji
+1. Utwórz encję w odpowiednim module
+2. Dodaj repozytorium (interfejs + implementacja)
+3. Utwórz migrację
+4. Dodaj do fixtures jeśli potrzebne
