@@ -2,7 +2,7 @@
 
 namespace App\Finance\Application\Service;
 
-use App\Core\Application\Service\WarningGeneratorInterface;
+use App\Core\Domain\Service\WarningGeneratorInterface;
 use App\Core\Domain\Entity\Warning;
 use App\Core\Domain\Repository\WarningRepositoryInterface;
 use App\Core\Domain\ValueObject\ObjectReference;

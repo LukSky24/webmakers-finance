@@ -2,6 +2,7 @@
 
 namespace App\Core\Application\Service;
 
+use App\Core\Domain\Service\WarningGeneratorInterface;
 use App\Core\Domain\ValueObject\WarningResult;
 use App\Core\Domain\ValueObject\WarningSummary;
 

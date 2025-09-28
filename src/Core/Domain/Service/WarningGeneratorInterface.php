@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Core\Application\Service;
+namespace App\Core\Domain\Service;
 
 interface WarningGeneratorInterface
 {
