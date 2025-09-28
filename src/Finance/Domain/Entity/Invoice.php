@@ -2,12 +2,13 @@
 
 namespace App\Finance\Domain\Entity;
 
+use App\Shared\Domain\Entity\AbstractEntity;
 use App\Shared\Domain\ValueObject\Timestamp;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoices')]
-class Invoice
+class Invoice extends AbstractEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -31,7 +32,7 @@ class Invoice
     private \DateTimeInterface $dueDate;
 
     #[ORM\Embedded(class: Timestamp::class)]
-    private Timestamp $timestamp;
+    protected Timestamp $timestamp;
 
     public function __construct(
         string $number,
@@ -39,14 +40,11 @@ class Invoice
         float $amount,
         \DateTimeInterface $dueDate
     ) {
+        parent::__construct();
         $this->number = $number;
         $this->contractor = $contractor;
         $this->amount = (string) $amount;
         $this->dueDate = $dueDate;
-        $this->timestamp = new Timestamp(
-            new \DateTimeImmutable(),
-            new \DateTimeImmutable()
-        );
     }
 
     public function getId(): int
@@ -79,29 +77,14 @@ class Invoice
         return $this->dueDate;
     }
 
-    public function getTimestamp(): Timestamp
-    {
-        return $this->timestamp;
-    }
-
     public function markAsPaid(): void
     {
         $this->isPaid = true;
-        $this->timestamp = $this->timestamp->update();
+        $this->updateTimestamp();
     }
 
     public function isOverdue(): bool
     {
         return !$this->isPaid && $this->dueDate < new \DateTime();
-    }
-
-    public function markAsDeleted(): void
-    {
-        $this->timestamp = $this->timestamp->markAsDeleted();
-    }
-
-    public function isDeleted(): bool
-    {
-        return $this->timestamp->isDeleted();
     }
 }

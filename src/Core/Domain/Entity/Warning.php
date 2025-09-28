@@ -4,12 +4,13 @@ namespace App\Core\Domain\Entity;
 
 use App\Core\Domain\ValueObject\ObjectReference;
 use App\Core\Domain\ValueObject\WarningType;
+use App\Shared\Domain\Entity\AbstractEntity;
 use App\Shared\Domain\ValueObject\Timestamp;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'warnings')]
-class Warning
+class Warning extends AbstractEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,19 +27,16 @@ class Warning
     private string $warningType;
 
     #[ORM\Embedded(class: Timestamp::class)]
-    private Timestamp $timestamp;
+    protected Timestamp $timestamp;
 
     public function __construct(
         ObjectReference $objectReference,
         WarningType $warningType
     ) {
+        parent::__construct();
         $this->objectType = $objectReference->getObjectType();
         $this->objectId = $objectReference->getObjectId();
         $this->warningType = $warningType->getValue();
-        $this->timestamp = new Timestamp(
-            new \DateTimeImmutable(),
-            new \DateTimeImmutable()
-        );
     }
 
     public function getId(): int
@@ -56,23 +54,8 @@ class Warning
         return WarningType::from($this->warningType);
     }
 
-    public function getTimestamp(): Timestamp
-    {
-        return $this->timestamp;
-    }
-
     public function update(): void
     {
-        $this->timestamp = $this->timestamp->update();
-    }
-
-    public function markAsDeleted(): void
-    {
-        $this->timestamp = $this->timestamp->markAsDeleted();
-    }
-
-    public function isDeleted(): bool
-    {
-        return $this->timestamp->isDeleted();
+        $this->updateTimestamp();
     }
 }
