@@ -6,6 +6,7 @@ use App\Core\Domain\Service\WarningGeneratorInterface;
 use App\Core\Domain\Entity\Warning;
 use App\Core\Domain\Repository\WarningRepositoryInterface;
 use App\Core\Domain\ValueObject\ObjectReference;
+use App\Core\Domain\ValueObject\ObjectType;
 use App\Core\Domain\ValueObject\WarningType;
 use App\Finance\Domain\Repository\InvoiceRepositoryInterface;
 
@@ -76,8 +77,8 @@ class InvoiceWarningGenerator implements WarningGeneratorInterface
         return $results;
     }
 
-    public function getSupportedObjectType(): string
+    public function getSupportedObjectType(): ObjectType
     {
-        return 'invoice';
+        return ObjectType::INVOICE;
     }
 }

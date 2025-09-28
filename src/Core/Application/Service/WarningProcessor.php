@@ -15,7 +15,7 @@ class WarningProcessor
         WarningGeneratorInterface ...$generators
     ) {
         foreach ($generators as $generator) {
-            $this->generators[$generator->getSupportedObjectType()] = $generator;
+            $this->generators[$generator->getSupportedObjectType()->getValue()] = $generator;
         }
     }
 
