@@ -31,3 +31,10 @@ services:
 
     App\Core\Infrastructure\Repository\DoctrineWarningRepository:
         tags: ['doctrine.repository_service']
+
+    # Warning processor with all generators
+    App\Core\Application\Service\WarningProcessor:
+        arguments:
+            - '@App\Finance\Application\Service\ContractorWarningGenerator'
+            - '@App\Finance\Application\Service\InvoiceWarningGenerator'
+            - '@App\Finance\Application\Service\BudgetWarningGenerator'

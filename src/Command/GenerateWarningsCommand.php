@@ -2,10 +2,8 @@
 
 namespace App\Command;
 
-use App\Core\Application\Service\WarningGeneratorInterface;
-use App\Finance\Application\Service\BudgetWarningGenerator;
-use App\Finance\Application\Service\ContractorWarningGenerator;
-use App\Finance\Application\Service\InvoiceWarningGenerator;
+use App\Core\Application\Service\WarningProcessor;
+use App\Core\Domain\ValueObject\TableData;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,9 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class GenerateWarningsCommand extends Command
 {
     public function __construct(
-        private readonly ContractorWarningGenerator $contractorWarningGenerator,
-        private readonly InvoiceWarningGenerator $invoiceWarningGenerator,
-        private readonly BudgetWarningGenerator $budgetWarningGenerator
+        private readonly WarningProcessor $warningProcessor
     ) {
         parent::__construct();
     }
@@ -32,47 +28,34 @@ class GenerateWarningsCommand extends Command
 
         $io->title('Generating Warnings');
 
-        $generators = [
-            'Contractor' => $this->contractorWarningGenerator,
-            'Invoice' => $this->invoiceWarningGenerator,
-            'Budget' => $this->budgetWarningGenerator,
-        ];
+        $summary = $this->warningProcessor->processAll();
 
-        $totalResults = [
-            'added' => 0,
-            'maintained' => 0,
-            'removed' => 0
-        ];
+        if ($summary->isEmpty()) {
+            $io->info('No warnings were generated.');
+            return Command::SUCCESS;
+        }
 
-        foreach ($generators as $type => $generator) {
-            $io->section("Processing {$type} warnings...");
+        // Display results for each generator
+        foreach ($summary->getGeneratorNames() as $generatorName) {
+            $io->section("Processing {$generatorName} warnings...");
             
-            $results = $generator->generateWarnings();
+            $result = $summary->getResult($generatorName);
             
-            $io->table(
-                ['Action', 'Count'],
-                [
-                    ['Added', $results['added']],
-                    ['Maintained', $results['maintained']],
-                    ['Removed', $results['removed']],
-                ]
-            );
-
-            $totalResults['added'] += $results['added'];
-            $totalResults['maintained'] += $results['maintained'];
-            $totalResults['removed'] += $results['removed'];
+            if ($result === null) {
+                $io->warning("No result found for generator: {$generatorName}");
+                continue;
+            }
+            
+            $tableData = TableData::fromWarningResult("{$generatorName} Results", $result);
+            $io->table($tableData->getHeaders(), $tableData->toArray());
         }
 
         $io->success('Warning generation completed!');
         
-        $io->table(
-            ['Total Action', 'Count'],
-            [
-                ['Total Added', $totalResults['added']],
-                ['Total Maintained', $totalResults['maintained']],
-                ['Total Removed', $totalResults['removed']],
-            ]
-        );
+        // Display total summary
+        $totalResult = $summary->getTotalResult();
+        $totalTableData = TableData::fromWarningResult("Total Summary", $totalResult);
+        $io->table($totalTableData->getHeaders(), $totalTableData->toArray());
 
         return Command::SUCCESS;
     }
