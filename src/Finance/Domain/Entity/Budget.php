@@ -48,19 +48,19 @@ class Budget extends AbstractEntity
 
     public function addAmount(float $amount): void
     {
-        $this->currentBalance = (string) (floatval($this->currentBalance) + $amount);
+        $this->currentBalance = (string) ((float)$this->currentBalance + $amount);
         $this->updateTimestamp();
     }
 
     public function subtractAmount(float $amount): void
     {
-        $this->currentBalance = (string) (floatval($this->currentBalance) - $amount);
+        $this->currentBalance = (string) ((float)$this->currentBalance - $amount);
         $this->updateTimestamp();
     }
 
     public function isNegative(): bool
     {
-        return floatval($this->currentBalance) < 0;
+        return (float)$this->currentBalance < 0;
     }
 
     public function updateName(string $name): void
